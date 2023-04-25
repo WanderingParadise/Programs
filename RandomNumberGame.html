@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Number Game</title>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Random Number Game</h1>
+        <div id="team-setup">
+            <label for="team-count">How many teams are playing?</label>
+            <input type="number" id="team-count" min="2" value="2">
+            <button id="start-game">Start Game</button>
+        </div>
+        <div id="game" style="display:none;">
+            <p>Current number: <span id="current-number">0</span></p>
+            <div id="teams"></div>
+            <button id="reveal">Reveal New Number</button>
+        </div>
+        <div id="round-summary" style="display:none;">
+            <h2>Round Summary</h2>
+            <div id="summary"></div>
+            <button id="play-again">Play Again</button>
+        </div>
+        <h2>Generated Numbers:</h2>
+        <ul id="number-list"></ul>
+    </div>
+<script>
+    const gameContainer = document.querySelector("#game-container");
+    const teamCountInput = gameContainer.querySelector("#team-count");
+    const startGameButton = gameContainer.querySelector("#start-game");
+    const gameElement = gameContainer.querySelector("#game");
+    const teamSetupElement = gameContainer.querySelector("#team-setup");
+    const currentNumberElement = gameContainer.querySelector("#current-number");
+    const teamsElement = gameContainer.querySelector("#teams");
+    const revealButton = gameContainer.querySelector("#reveal");
+    const roundSummaryElement = gameContainer.querySelector("#round-summary");
+    const summaryElement = gameContainer.querySelector("#summary");
+    const playAgainButton = gameContainer.querySelector("#play-again");
+    const numberListElement = gameContainer.querySelector("ul#number-list");
+	
+    startGameButton.addEventListener("click", startGame);
+    revealButton.addEventListener("click", revealNewNumber);
+    playAgainButton.addEventListener("click", playAgain);
+
+    function startGame() {
+        const teamCount = parseInt(teamCountInput.value);
+
+        for (let i = 0; i < teamCount; i++) {
+            const teamElement = document.createElement("div");
+            teamElement.innerHTML = `
+                <h3>Team ${i + 1}</h3>
+                <p>Your current points: <span class="points">100</span></p>
+                <p>
+                    Do you think the next number will be higher or lower than the current number?<br>
+                    <input type="radio" id="higher-${i}" name="guess-${i}" value="higher" checked>
+                    <label for="higher-${i}">Higher</label><br>
+                    <input type="radio" id="lower-${i}" name="guess-${i}" value="lower">
+                    <label for="lower-${i}">Lower</label>
+                </p>
+                <p>How much do you want to bet?<br>
+                    <input type="number" class="bet" min="1" max="100" value="1">
+                </p>
+            `;
+            teamsElement.appendChild(teamElement);
+        }
+
+        currentNumberElement.textContent = generateRandomNumber(400, 100);
+        addNumberToList(currentNumberElement.textContent);
+        gameElement.style.display = "block";
+        teamSetupElement.style.display = "none";
+    }
+    function revealNewNumber() {
+        const newNumber = generateRandomNumber(400, 100);
+        const oldNumber = parseInt(currentNumberElement.textContent);
+        currentNumberElement.textContent = newNumber;
+        addNumberToList(newNumber);
+
+        const teamCount = parseInt(teamCountInput.value);
+        let roundSummary = "";
+
+        for (let i = 0; i < teamCount; i++) {
+            const teamElement = teamsElement.children[i];
+            const pointsElement = teamElement.querySelector(".points");
+            const guess = teamElement.querySelector(`input[name="guess-${i}"]:checked`).value;
+            const bet = parseInt(teamElement.querySelector(".bet").value);
+            const correct = (guess === "higher" && newNumber > oldNumber) || (guess === "lower" && newNumber < oldNumber);
+
+            if (correct) {
+                pointsElement.textContent = parseInt(pointsElement.textContent) + bet;
+                roundSummary += `<p>Team ${i + 1}: Correct! You gained ${bet} points.</p>`;
+            } else {
+                pointsElement.textContent = parseInt(pointsElement.textContent) - bet;
+                roundSummary += `<p>Team ${i + 1}: Incorrect. You lost ${bet} points.</p>`;
+            }
+        }
+
+        summaryElement.innerHTML = roundSummary;
+        roundSummaryElement.style.display = "block";
+        gameElement.style.display = "none";
+    }
+
+    function playAgain() {
+        roundSummaryElement.style.display = "none";
+        gameElement.style.display = "block";
+    }
+
+    function generateRandomNumber(max, min) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function addNumberToList(number) {
+    const listItem = document.createElement("li");
+    listItem.textContent = number;
+    numberListElement.appendChild(listItem);
+}
+</script>
+
